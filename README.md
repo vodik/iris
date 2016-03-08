@@ -1,0 +1,3 @@
+# iris
+
+Toy project that can currently send emails. More to come...
