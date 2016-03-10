@@ -46,9 +46,7 @@ static int start_tls(SSL_CTX *ctx, struct sock *sock)
 static int authenticate(struct sock *sock, const char *user, size_t user_size,
 			const char *passwd, size_t passwd_size)
 {
-    /* TODO: temp hack */
     const size_t total_size = user_size + passwd_size + 2;
-
     unsigned char buf[total_size + 1], *p = buf;
 
     *p++ = '\0';

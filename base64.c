@@ -10,11 +10,10 @@ char *base64_encode(const unsigned char *data, size_t data_length,
 {
     const size_t length = 4 * ((data_length + 2) / 3);
 
-    char *encoded_data = malloc(length + 1);
+    char *encoded_data = malloc(length + 1), *p = encoded_data;
     if (encoded_data == NULL)
 	return NULL;
 
-    char *output = encoded_data;
     for (size_t i = 0; i < data_length; i += 3) {
 	const uint8_t lookahead[2] = {
 	    i + 1 < data_length,
@@ -28,13 +27,13 @@ char *base64_encode(const unsigned char *data, size_t data_length,
 	};
 
         const uint32_t bitpattern = (octets[0] << 16) + (octets[1] << 8) + octets[2];
-        *output++ = encoding_table[(bitpattern >> 18) & 0x3F];
-        *output++ = encoding_table[(bitpattern >> 12) & 0x3F];
-	*output++ = lookahead[0] ? encoding_table[(bitpattern >> 6) & 0x3F] : '=';
-	*output++ = lookahead[1] ? encoding_table[bitpattern & 0x3F] : '=';
+	*p++ = encoding_table[(bitpattern >> 18) & 0x3F];
+	*p++ = encoding_table[(bitpattern >> 12) & 0x3F];
+	*p++ = lookahead[0] ? encoding_table[(bitpattern >> 6) & 0x3F] : '=';
+	*p++ = lookahead[1] ? encoding_table[bitpattern & 0x3F] : '=';
     }
 
-    *output = '\0';
+    *p = '\0';
     if (output_length)
     	*output_length = length;
     return encoded_data;
