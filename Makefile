@@ -12,4 +12,4 @@ debug: CFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize=integer
 debug: LDFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize=integer
 debug: iris
 
-iris: iris.o base64.o
+iris: iris.o socket.o base64.o
