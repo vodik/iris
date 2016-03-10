@@ -18,7 +18,7 @@ static int start_tls(SSL_CTX *ctx, struct sock *sock)
 
     int ret = SSL_connect(sock->ssl);
     if (ret <= 0)
-        socket_perror(sock, ret);
+        sock_err(sock, ret);
 
     sock->use_ssl = 1;
     return 0;
@@ -55,11 +55,12 @@ static int authenticate(struct sock *sock)
 int main(int argc, char *argv[])
 {
     struct sock sock;
-    if (smtp_connect(HOST, "submission", &sock) < 0) {
+    if (sock_connect(&sock, HOST, "submission") < 0) {
         fprintf(stderr, "Fuck, it didn't work\n");
         fflush(stderr);
         return 1;
     }
+    sock_read(&sock);
 
     sock_write(&sock, "EHLO " USER "\r\n");
     sock_read(&sock);

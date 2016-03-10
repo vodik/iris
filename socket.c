@@ -14,7 +14,7 @@ static void __attribute__((constructor)) init_openssl(void)
     SSL_load_error_strings();
 }
 
-static int smtp_raw_socket(const char *hostname, const char *service)
+static int sock_getaddrinfo(const char *hostname, const char *service)
 {
     struct addrinfo *result, *iter;
     const struct addrinfo hints = {
@@ -51,16 +51,15 @@ static int smtp_raw_socket(const char *hostname, const char *service)
     return iter == NULL ? -1 : sock;
 }
 
-int smtp_connect(const char *hostname, const char *service, struct sock *sock)
+int sock_connect(struct sock *sock, const char *hostname, const char *service)
 {
-    int socket = smtp_raw_socket(hostname, service);
-    if (socket < 0) {
-        perror("socket");
+    int fd = sock_getaddrinfo(hostname, service);
+    if (fd < 0) {
+        perror("fd");
 	return -1;
     }
 
-    *sock = (struct sock){.fd = socket, .ssl = NULL, .use_ssl = 0};
-    sock_read(sock);
+    *sock = (struct sock){.fd = fd, .ssl = NULL, .use_ssl = 0};
     return 0;
 }
 
@@ -94,7 +93,7 @@ int sock_close(struct sock *sock)
     return 0;
 }
 
-void socket_perror(struct sock *sock, int ret)
+void sock_err(struct sock *sock, int ret)
 {
     if (sock->use_ssl) {
         int err = SSL_get_error(sock->ssl, ret);
