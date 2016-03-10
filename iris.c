@@ -23,7 +23,7 @@ static int sock_sendmsg(struct sock *sock, const char *fmt, ...)
     stupid_buf[len] = '\0';
 
     sock_write(sock, stupid_buf);
-    printf("sending: %s", stupid_buf);
+    printf("\033[32m%s\033[0m", stupid_buf);
     return len;
 }
 
@@ -70,6 +70,10 @@ static int authenticate(struct sock *sock, const char *user, size_t user_size,
 
 int main(int argc, char *argv[])
 {
+    SSL_CTX *context = SSL_CTX_new(TLSv1_method());
+    SSL_CTX_set_options(context, 0);
+    SSL_CTX_set_verify(context, SSL_VERIFY_NONE, 0);
+
     struct sock sock;
     if (sock_connect(&sock, HOST, "submission") < 0) {
         fprintf(stderr, "Fuck, it didn't work\n");
@@ -78,14 +82,7 @@ int main(int argc, char *argv[])
     }
     sock_read(&sock);
 
-    sock_sendmsg(&sock, "EHLO %s", USER);
-    sock_read(&sock);
-
-    SSL_CTX *context = SSL_CTX_new(TLSv1_method());
-    SSL_CTX_set_options(context, 0);
-    SSL_CTX_set_verify(context, SSL_VERIFY_NONE, 0);
     start_tls(context, &sock);
-
     sock_sendmsg(&sock, "EHLO %s", USER);
     sock_read(&sock);
 
