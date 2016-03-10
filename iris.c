@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <sys/socket.h>
 #include <openssl/ssl.h>
 #include <openssl/ossl_typ.h>
@@ -8,9 +9,27 @@
 #include "base64.h"
 #include "config.h"
 
+static int sock_sendmsg(struct sock *sock, const char *fmt, ...)
+{
+    va_list ap;
+    char stupid_buf[4089];
+
+    va_start(ap, fmt);
+    size_t len = vsnprintf(stupid_buf, sizeof(stupid_buf), fmt, ap);
+    va_end(ap);
+
+    stupid_buf[len++] = '\r';
+    stupid_buf[len++] = '\n';
+    stupid_buf[len] = '\0';
+
+    sock_write(sock, stupid_buf);
+    printf("sending: %s", stupid_buf);
+    return len;
+}
+
 static int start_tls(SSL_CTX *ctx, struct sock *sock)
 {
-    sock_write(sock, "STARTTLS\r\n");
+    sock_sendmsg(sock, "STARTTLS");
     sock_read(sock);
 
     sock->ssl = SSL_new(ctx);
@@ -24,28 +43,25 @@ static int start_tls(SSL_CTX *ctx, struct sock *sock)
     return 0;
 }
 
-static int authenticate(struct sock *sock)
+static int authenticate(struct sock *sock, const char *user, size_t user_size,
+			const char *passwd, size_t passwd_size)
 {
     /* TODO: temp hack */
-    const size_t user_size = sizeof(USER) - 1;
-    const size_t password_size = sizeof(PASSWORD) - 1;
-    const size_t total_size = user_size + password_size + 2;
+    const size_t total_size = user_size + passwd_size + 2;
 
     unsigned char buf[total_size + 1], *p = buf;
 
     p[0] = '\0';
-    p = mempcpy(p + 1, USER, user_size);
+    p = mempcpy(p + 1, user, user_size);
 
     p[0] = '\0';
-    p = mempcpy(p + 1, PASSWORD, password_size);
+    p = mempcpy(p + 1, passwd, passwd_size);
 
     char *encoded = base64_encode(buf, total_size, NULL);
     if (!encoded)
 	exit(1);
 
-    sock_write(sock, "AUTH PLAIN ");
-    sock_write(sock, encoded);
-    sock_write(sock, "\r\n");
+    sock_sendmsg(sock, "AUTH PLAIN %s", encoded);
     free(encoded);
 
     sock_read(sock);
@@ -62,7 +78,7 @@ int main(int argc, char *argv[])
     }
     sock_read(&sock);
 
-    sock_write(&sock, "EHLO " USER "\r\n");
+    sock_sendmsg(&sock, "EHLO %s", USER);
     sock_read(&sock);
 
     SSL_CTX *context = SSL_CTX_new(TLSv1_method());
@@ -70,26 +86,25 @@ int main(int argc, char *argv[])
     SSL_CTX_set_verify(context, SSL_VERIFY_NONE, 0);
     start_tls(context, &sock);
 
-    sock_write(&sock, "EHLO " USER "\r\n");
+    sock_sendmsg(&sock, "EHLO %s", USER);
     sock_read(&sock);
 
-    authenticate(&sock);
+    authenticate(&sock, USER, strlen(USER), PASSWORD, strlen(PASSWORD));
 
-    sock_write(&sock, "MAIL FROM: <" MAIL_FROM ">\r\n");
+    sock_sendmsg(&sock,
+		 "MAIL FROM: <%s>\r\n"
+		 "RCPT TO: <%s>\r\n"
+		 "DATA",
+		 MAIL_FROM, RCPT_TO);
     sock_read(&sock);
 
-    sock_write(&sock, "RCPT TO: <" RCPT_TO ">\r\n");
-    sock_read(&sock);
-
-    sock_write(&sock, "DATA\r\n");
-    sock_read(&sock);
-
-    sock_write(&sock,
-    	 "From: <" MAIL_FROM ">\r\n"
-    	 "To: <" RCPT_TO ">\r\n"
-    	 "Subject: Test message!\r\n"
-    	 "This is a test message\r\n"
-    	 ".\r\n");
+    sock_sendmsg(&sock,
+		 "From: <%s>\r\n"
+		 "To: <%s>\r\n"
+		 "Subject: Test message!\r\n"
+		 "This is a test message\r\n"
+		 ".",
+		 MAIL_FROM, RCPT_TO);
     sock_read(&sock);
 
     sock_close(&sock);
