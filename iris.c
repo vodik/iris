@@ -51,11 +51,11 @@ static int authenticate(struct sock *sock, const char *user, size_t user_size,
 
     unsigned char buf[total_size + 1], *p = buf;
 
-    p[0] = '\0';
-    p = mempcpy(p + 1, user, user_size);
+    *p++ = '\0';
+    p = mempcpy(p, user, user_size);
 
-    p[0] = '\0';
-    p = mempcpy(p + 1, passwd, passwd_size);
+    *p++ = '\0';
+    p = mempcpy(p, passwd, passwd_size);
 
     char *encoded = base64_encode(buf, total_size, NULL);
     if (!encoded)
