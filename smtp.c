@@ -7,7 +7,14 @@
 #include "smtp.h"
 #include "base64.h"
 
-int start_tls(SSL_CTX *ctx, struct sock *sock)
+int smtp_ehlo(struct sock *sock, const char *user)
+{
+    sock_sendmsg(sock, "EHLO %s", user);
+    sock_read(sock);
+    return 0;
+}
+
+int smtp_start_tls(struct sock *sock, SSL_CTX *ctx)
 {
     sock_sendmsg(sock, "STARTTLS");
     sock_read(sock);
@@ -23,8 +30,8 @@ int start_tls(SSL_CTX *ctx, struct sock *sock)
     return 0;
 }
 
-int authenticate(struct sock *sock, const char *user, size_t user_size,
-		 const char *passwd, size_t passwd_size)
+int smtp_auth_plain(struct sock *sock, const char *user, size_t user_size,
+		    const char *passwd, size_t passwd_size)
 {
     const size_t total_size = user_size + passwd_size + 2;
     unsigned char buf[total_size + 1], *p = buf;

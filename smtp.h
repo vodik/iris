@@ -5,6 +5,7 @@
 
 struct sock;
 
-int start_tls(SSL_CTX *ctx, struct sock *sock);
-int authenticate(struct sock *sock, const char *user, size_t user_size,
-		 const char *passwd, size_t passwd_size);
+int smtp_ehlo(struct sock *sock, const char *user);
+int smtp_start_tls(struct sock *sock, SSL_CTX *ctx);
+int smtp_auth_plain(struct sock *sock, const char *user, size_t user_size,
+		    const char *passwd, size_t passwd_size);

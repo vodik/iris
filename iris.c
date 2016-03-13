@@ -21,11 +21,9 @@ int main(int argc, char *argv[])
     }
     sock_read(&sock);
 
-    start_tls(context, &sock);
-    sock_sendmsg(&sock, "EHLO %s", USER);
-    sock_read(&sock);
-
-    authenticate(&sock, USER, strlen(USER), PASSWORD, strlen(PASSWORD));
+    smtp_start_tls(&sock, context);
+    smtp_ehlo(&sock, USER);
+    smtp_auth_plain(&sock, USER, strlen(USER), PASSWORD, strlen(PASSWORD));
 
     sock_sendmsg(&sock,
 		 "MAIL FROM: <%s>\r\n"
