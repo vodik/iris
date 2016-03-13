@@ -1,4 +1,7 @@
 #include "socket.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
@@ -121,4 +124,22 @@ void sock_err(struct sock *sock, int ret)
     }
 
     exit(ret);
+}
+
+int sock_sendmsg(struct sock *sock, const char *fmt, ...)
+{
+    va_list ap;
+    char stupid_buf[4089];
+
+    va_start(ap, fmt);
+    size_t len = vsnprintf(stupid_buf, sizeof(stupid_buf), fmt, ap);
+    va_end(ap);
+
+    stupid_buf[len++] = '\r';
+    stupid_buf[len++] = '\n';
+    stupid_buf[len] = '\0';
+
+    sock_write(sock, stupid_buf);
+    printf("\033[32m%s\033[0m", stupid_buf);
+    return len;
 }
