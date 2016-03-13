@@ -7,7 +7,7 @@
 #include "smtp.h"
 #include "config.h"
 
-int main(int argc, char *argv[])
+int main(void)
 {
     SSL_CTX *context = SSL_CTX_new(TLSv1_method());
     SSL_CTX_set_options(context, 0);
