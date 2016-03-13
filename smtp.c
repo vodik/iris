@@ -7,6 +7,17 @@
 #include "smtp.h"
 #include "base64.h"
 
+int smtp_connect(struct sock *sock, const char *hostname,
+		 const char *service, SSL_CTX *ctx)
+{
+    sock_connect(sock, hostname, service);
+    sock_read(sock);
+
+    if (ctx)
+	smtp_start_tls(sock, ctx);
+    return smtp_ehlo(sock, hostname);
+}
+
 int smtp_ehlo(struct sock *sock, const char *user)
 {
     sock_sendmsg(sock, "EHLO %s", user);
