@@ -13,3 +13,8 @@ debug: LDFLAGS += -fsanitize=address -fsanitize=undefined -fsanitize=integer
 debug: iris
 
 iris: iris.o smtp.o socket.o base64.o
+
+clean:
+	$(RM) *.o iris
+
+.PHONY: all clean
