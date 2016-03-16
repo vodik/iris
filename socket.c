@@ -66,26 +66,32 @@ int sock_connect(struct sock *sock, const char *hostname, const char *service)
     return 0;
 }
 
-void sock_read(struct sock *sock)
+ssize_t sock_read(struct sock *sock, char *buf, size_t bufsize)
 {
-    char buf[BUFSIZ];
     ssize_t nbytes_r;
 
     if (sock->use_ssl)
-         nbytes_r = SSL_read(sock->ssl, buf, sizeof(buf));
+	nbytes_r = SSL_read(sock->ssl, buf, bufsize);
     else
-         nbytes_r = read(sock->fd, buf, sizeof(buf));
+	nbytes_r = read(sock->fd, buf, bufsize);
 
     printf("%.*s\r\n", (int)nbytes_r - 1, buf);
+    return nbytes_r;
+}
+
+void sock_dump(struct sock *sock)
+{
+    char buf[BUFSIZ];
+    sock_read(sock, buf, sizeof(buf));
 }
 
 int sock_write(struct sock *sock, const char *msg)
 {
     size_t len = strlen(msg);
     if (sock->use_ssl)
-         return SSL_write(sock->ssl, msg, len);
+	return SSL_write(sock->ssl, msg, len);
     else
-         return write(sock->fd, msg, len);
+	return write(sock->fd, msg, len);
 }
 
 int sock_close(struct sock *sock)
@@ -99,28 +105,28 @@ int sock_close(struct sock *sock)
 void sock_err(struct sock *sock, int ret)
 {
     if (sock->use_ssl) {
-        int err = SSL_get_error(sock->ssl, ret);
-        switch (err) {
-        case SSL_ERROR_SYSCALL:
-        case SSL_ERROR_SSL:
-            err = ERR_get_error();
-            if (err == 0) {
-                if (ret == 0)
-                    printf("SSL: got EOF\r\n");
-                else
-                    printf("SSL: %d: %s\r\n", errno, strerror(errno));
-            } else
-                printf("SSL: %d: %s\r\n", err, ERR_error_string(err, 0));
-            break;
-        default:
-            printf("SSL: %d: unhandled SSL error\r\n", err);
-            break;
-        }
+	int err = SSL_get_error(sock->ssl, ret);
+	switch (err) {
+	case SSL_ERROR_SYSCALL:
+	case SSL_ERROR_SSL:
+	    err = ERR_get_error();
+	    if (err == 0) {
+		if (ret == 0)
+		    printf("SSL: got EOF\r\n");
+		else
+		    printf("SSL: %d: %s\r\n", errno, strerror(errno));
+	    } else
+		printf("SSL: %d: %s\r\n", err, ERR_error_string(err, 0));
+	    break;
+	default:
+	    printf("SSL: %d: unhandled SSL error\r\n", err);
+	    break;
+	}
     } else {
-        if (ret < 0)
-            perror("shit");
-        else
-            printf("unexpeted EOF\r\n");
+	if (ret < 0)
+	    perror("shit");
+	else
+	    printf("unexpeted EOF\r\n");
     }
 
     exit(ret);

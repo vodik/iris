@@ -7,11 +7,22 @@
 #include "smtp.h"
 #include "base64.h"
 
+int smtp_get_msg(struct sock *sock)
+{
+    char buf[BUFSIZ];
+    ssize_t nbytes_r = sock_read(sock, buf, sizeof(buf));
+    if (nbytes_r < 0)
+	return -1;
+
+    printf("\033[31m%.*s\033[0m\n", 4, buf);
+    return SMTP_OK;
+}
+
 int smtp_connect(struct sock *sock, const char *hostname,
 		 const char *service, SSL_CTX *ctx)
 {
     sock_connect(sock, hostname, service);
-    sock_read(sock);
+    smtp_get_msg(sock);
 
     if (ctx)
 	smtp_start_tls(sock, ctx);
@@ -21,14 +32,13 @@ int smtp_connect(struct sock *sock, const char *hostname,
 int smtp_ehlo(struct sock *sock, const char *user)
 {
     sock_sendmsg(sock, "EHLO %s", user);
-    sock_read(sock);
-    return 0;
+    return smtp_get_msg(sock);
 }
 
 int smtp_start_tls(struct sock *sock, SSL_CTX *ctx)
 {
     sock_sendmsg(sock, "STARTTLS");
-    sock_read(sock);
+    smtp_get_msg(sock);
 
     sock->ssl = SSL_new(ctx);
     SSL_set_fd(sock->ssl, sock->fd);
@@ -60,6 +70,5 @@ int smtp_auth_plain(struct sock *sock, const char *user, size_t user_size,
     sock_sendmsg(sock, "AUTH PLAIN %s", encoded);
     free(encoded);
 
-    sock_read(sock);
-    return 0;
+    return smtp_get_msg(sock);
 }
