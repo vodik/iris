@@ -10,11 +10,20 @@
 int smtp_get_msg(struct sock *sock)
 {
     char buf[BUFSIZ];
-    ssize_t nbytes_r = sock_read(sock, buf, sizeof(buf));
+    const ssize_t nbytes_r = sock_read(sock, buf, sizeof(buf));
     if (nbytes_r < 0)
 	return -1;
 
-    printf("\033[31m%.*s\033[0m\n", 4, buf);
+    for (const char *it = buf; it && it != buf + nbytes_r;) {
+	const size_t eol = strcspn(it, "\n");
+	if (it[eol] != '\n')
+	    /* TODO: MALFORMED LINE */
+	    return -1;
+
+	printf("\033[31;1m%.*s\033[0m\033[31m%.*s\033[0m\n", 4, it, (int)eol - 4, it + 4);
+	it += eol + 1;
+    }
+
     return SMTP_OK;
 }
 
