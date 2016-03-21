@@ -15,4 +15,5 @@ int smtp_start_tls(struct sock *sock, SSL_CTX *ctx);
 int smtp_auth_plain(struct sock *sock, const char *user, size_t user_size,
 		    const char *passwd, size_t passwd_size);
 
-int smtp_get_msg(struct sock *sock);
+int smtp_get_msg(struct sock *sock, int pipeline);
+int smtp_sendmsg(struct sock *sock, int pipeline, const char *fmt, ...);

@@ -68,15 +68,10 @@ int sock_connect(struct sock *sock, const char *hostname, const char *service)
 
 ssize_t sock_read(struct sock *sock, char *buf, size_t bufsize)
 {
-    ssize_t nbytes_r;
-
     if (sock->use_ssl)
-	nbytes_r = SSL_read(sock->ssl, buf, bufsize);
+	return SSL_read(sock->ssl, buf, bufsize);
     else
-	nbytes_r = read(sock->fd, buf, bufsize);
-
-    printf("%.*s\r\n", (int)nbytes_r - 1, buf);
-    return nbytes_r;
+	return read(sock->fd, buf, bufsize);
 }
 
 void sock_dump(struct sock *sock)
@@ -132,14 +127,11 @@ void sock_err(struct sock *sock, int ret)
     exit(ret);
 }
 
-int sock_sendmsg(struct sock *sock, const char *fmt, ...)
+int sock_vsendmsg(struct sock *sock, const char *fmt, va_list ap)
 {
-    va_list ap;
     char stupid_buf[4089];
 
-    va_start(ap, fmt);
     size_t len = vsnprintf(stupid_buf, sizeof(stupid_buf), fmt, ap);
-    va_end(ap);
 
     stupid_buf[len++] = '\r';
     stupid_buf[len++] = '\n';
@@ -148,4 +140,14 @@ int sock_sendmsg(struct sock *sock, const char *fmt, ...)
     sock_write(sock, stupid_buf);
     printf("\033[32m%s\033[0m", stupid_buf);
     return len;
+}
+
+int sock_sendmsg(struct sock *sock, const char *fmt, ...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    int ret = sock_vsendmsg(sock, fmt, ap);
+    va_end(ap);
+    return ret;
 }

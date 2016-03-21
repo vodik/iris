@@ -24,21 +24,19 @@ int main(void)
 	return 1;
     }
 
-    sock_sendmsg(&sock,
+    smtp_sendmsg(&sock, 3,
 		 "MAIL FROM: <%s>\r\n"
 		 "RCPT TO: <%s>\r\n"
 		 "DATA",
 		 MAIL_FROM, RCPT_TO);
-    sock_dump(&sock);
 
-    sock_sendmsg(&sock,
+    smtp_sendmsg(&sock, 1,
 		 "From: <%s>\r\n"
 		 "To: <%s>\r\n"
 		 "Subject: Test message!\r\n"
 		 "This is a test message\r\n"
 		 ".",
 		 MAIL_FROM, RCPT_TO);
-    sock_dump(&sock);
 
     sock_close(&sock);
     SSL_CTX_free(context);
