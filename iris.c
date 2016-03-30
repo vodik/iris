@@ -7,7 +7,7 @@
 #include "smtp.h"
 #include "config.h"
 
-int main(void)
+static int smtp_demo(void)
 {
     SSL_CTX *context = SSL_CTX_new(TLSv1_method());
     SSL_CTX_set_options(context, 0);
@@ -40,4 +40,21 @@ int main(void)
 
     sock_close(&sock);
     SSL_CTX_free(context);
+    return 0;
+}
+
+static int imap_demo(void)
+{
+    return 0;
+}
+
+int main(int argc, const char *argv[])
+{
+    if (argc != 2) {
+	return 1;
+    } else if (strcmp(argv[1], "submission") == 0) {
+	return smtp_demo();
+    } else if (strcmp(argv[1], "imap") == 0) {
+	return imap_demo();
+    }
 }
