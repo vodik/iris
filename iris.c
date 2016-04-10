@@ -45,6 +45,24 @@ static int smtp_demo(void)
 
 static int imap_demo(void)
 {
+    struct sock sock;
+
+    SSL_CTX *context = SSL_CTX_new(TLSv1_method());
+    SSL_CTX_set_options(context, 0);
+    SSL_CTX_set_verify(context, SSL_VERIFY_NONE, 0);
+
+    sock_connect(&sock, HOST, "imaps");
+    sock_starttls(&sock, context);
+
+    char buf[BUFSIZ];
+    sock_read(&sock, buf, sizeof(buf));
+    printf("got: %s\n", buf);
+
+    /* if (imap_connect(&sock, HOST, "imaps", context) != 0) { */
+    /* 	fprintf(stderr, "Failed to connect\n"); */
+    /* 	return 1; */
+    /* } */
+
     return 0;
 }
 
