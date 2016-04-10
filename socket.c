@@ -54,6 +54,18 @@ static int sock_getaddrinfo(const char *hostname, const char *service)
     return iter == NULL ? -1 : sock;
 }
 
+int sock_starttls(struct sock *sock, SSL_CTX *ctx)
+{
+    sock->ssl = SSL_new(ctx);
+    SSL_set_fd(sock->ssl, sock->fd);
+
+    int ret = SSL_connect(sock->ssl);
+    if (ret <= 0)
+        sock_err(sock, ret);
+
+    sock->use_ssl = 1;
+}
+
 int sock_connect(struct sock *sock, const char *hostname, const char *service)
 {
     int fd = sock_getaddrinfo(hostname, service);

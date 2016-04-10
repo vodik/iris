@@ -16,3 +16,4 @@ int sock_close(struct sock *sock);
 void sock_err(struct sock *sock, int ret);
 int sock_sendmsg(struct sock *sock, const char *fmt, ...);
 int sock_vsendmsg(struct sock *sock, const char *fmt, va_list ap);
+int sock_starttls(struct sock *sock, SSL_CTX *ctx);

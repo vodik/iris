@@ -58,7 +58,7 @@ int smtp_connect(struct sock *sock, const char *hostname,
     smtp_get_msg(sock, 1);
 
     if (ctx)
-	smtp_start_tls(sock, ctx);
+	smtp_starttls(sock, ctx);
     return smtp_ehlo(sock, hostname);
 }
 
@@ -68,19 +68,12 @@ int smtp_ehlo(struct sock *sock, const char *user)
     return smtp_get_msg(sock, 1);
 }
 
-int smtp_start_tls(struct sock *sock, SSL_CTX *ctx)
+int smtp_starttls(struct sock *sock, SSL_CTX *ctx)
 {
     sock_sendmsg(sock, "STARTTLS");
     smtp_get_msg(sock, 1);
 
-    sock->ssl = SSL_new(ctx);
-    SSL_set_fd(sock->ssl, sock->fd);
-
-    int ret = SSL_connect(sock->ssl);
-    if (ret <= 0)
-        sock_err(sock, ret);
-
-    sock->use_ssl = 1;
+    sock_starttls(sock, ctx);
     return 0;
 }
 
