@@ -4,6 +4,7 @@
 #include <openssl/ossl_typ.h>
 
 #include "socket.h"
+#include "imap.h"
 #include "smtp.h"
 #include "config.h"
 
@@ -43,7 +44,7 @@ static int smtp_demo(void)
     return 0;
 }
 
-static int imap_demo(void)
+static int imap_demo(int uid)
 {
     struct sock sock;
 
@@ -51,35 +52,34 @@ static int imap_demo(void)
     SSL_CTX_set_options(context, 0);
     SSL_CTX_set_verify(context, SSL_VERIFY_NONE, 0);
 
-    sock_connect(&sock, HOST, "imaps");
-    sock_starttls(&sock, context);
+    imap_connect(&sock, HOST, "imaps", context);
 
     char buf[BUFSIZ];
+    imap_sendmsg(&sock, "LOGIN %s %s", USER, PASSWORD);
     sock_read(&sock, buf, sizeof(buf));
     printf("got: %s\n", buf);
 
-    sock_sendmsg(&sock, "a1 LOGIN %s %s", USER, PASSWORD);
+    imap_sendmsg(&sock, "LIST \"\" \"*\"");
     sock_read(&sock, buf, sizeof(buf));
     printf("got: %s\n", buf);
 
-    sock_sendmsg(&sock, "a2 LIST \"\" \"*\"");
+    imap_sendmsg(&sock, "SELECT INBOX");
     sock_read(&sock, buf, sizeof(buf));
     printf("got: %s\n", buf);
 
-    sock_sendmsg(&sock, "a3 SELECT INBOX");
-    sock_read(&sock, buf, sizeof(buf));
-    printf("got: %s\n", buf);
-
-    sock_sendmsg(&sock, "a4 FETCH 1 BODY[]");
+    imap_sendmsg(&sock, "FETCH %d BODY[]", uid);
     for (;;) {
 	sock_read(&sock, buf, sizeof(buf));
-	printf("%s\n", buf);
 
-	if (strncmp(buf, "a4 OK", 5) == 0)
+	if (strncmp(buf, "iris4 OK", 5) == 0) {
+	    printf("got: %s\n", buf);
 	    break;
+	} else {
+	    printf("%s", buf);
+	}
     }
 
-    sock_sendmsg(&sock, "a5 LOGOUT");
+    imap_sendmsg(&sock, "LOGOUT");
     sock_read(&sock, buf, sizeof(buf));
     printf("got: %s\n", buf);
 
@@ -93,6 +93,6 @@ int main(int argc, const char *argv[])
     } else if (strcmp(argv[1], "submission") == 0) {
 	return smtp_demo();
     } else if (strcmp(argv[1], "imap") == 0) {
-	return imap_demo();
+	return imap_demo(5);
     }
 }
