@@ -64,6 +64,7 @@ int sock_starttls(struct sock *sock, SSL_CTX *ctx)
         sock_err(sock, ret);
 
     sock->use_ssl = 1;
+    return 0;
 }
 
 int sock_connect(struct sock *sock, const char *hostname, const char *service)
@@ -80,10 +81,15 @@ int sock_connect(struct sock *sock, const char *hostname, const char *service)
 
 ssize_t sock_read(struct sock *sock, char *buf, size_t bufsize)
 {
+    ssize_t nbytes_r;
     if (sock->use_ssl)
-	return SSL_read(sock->ssl, buf, bufsize);
+	nbytes_r = SSL_read(sock->ssl, buf, bufsize);
     else
-	return read(sock->fd, buf, bufsize);
+	nbytes_r = read(sock->fd, buf, bufsize);
+
+    if (nbytes_r >= 0)
+	buf[nbytes_r] = 0;
+    return nbytes_r;
 }
 
 void sock_dump(struct sock *sock)

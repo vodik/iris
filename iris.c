@@ -58,10 +58,30 @@ static int imap_demo(void)
     sock_read(&sock, buf, sizeof(buf));
     printf("got: %s\n", buf);
 
-    /* if (imap_connect(&sock, HOST, "imaps", context) != 0) { */
-    /* 	fprintf(stderr, "Failed to connect\n"); */
-    /* 	return 1; */
-    /* } */
+    sock_sendmsg(&sock, "a1 LOGIN %s %s", USER, PASSWORD);
+    sock_read(&sock, buf, sizeof(buf));
+    printf("got: %s\n", buf);
+
+    sock_sendmsg(&sock, "a2 LIST \"\" \"*\"");
+    sock_read(&sock, buf, sizeof(buf));
+    printf("got: %s\n", buf);
+
+    sock_sendmsg(&sock, "a3 SELECT INBOX");
+    sock_read(&sock, buf, sizeof(buf));
+    printf("got: %s\n", buf);
+
+    sock_sendmsg(&sock, "a4 FETCH 1 BODY[]");
+    for (;;) {
+	sock_read(&sock, buf, sizeof(buf));
+	printf("%s\n", buf);
+
+	if (strncmp(buf, "a4 OK", 5) == 0)
+	    break;
+    }
+
+    sock_sendmsg(&sock, "a5 LOGOUT");
+    sock_read(&sock, buf, sizeof(buf));
+    printf("got: %s\n", buf);
 
     return 0;
 }
