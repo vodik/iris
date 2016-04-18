@@ -8,3 +8,4 @@ struct sock;
 int imap_connect(struct sock *sock, const char *hostname,
 		 const char *service, SSL_CTX *ctx);
 int imap_sendmsg(struct sock *sock, const char *fmt, ...);
+int imap_get_msg(struct sock *sock);

@@ -54,21 +54,18 @@ static int imap_demo(int uid)
 
     imap_connect(&sock, HOST, "imaps", context);
 
-    char buf[BUFSIZ];
     imap_sendmsg(&sock, "LOGIN %s %s", USER, PASSWORD);
-    sock_read(&sock, buf, sizeof(buf));
-    printf("got: %s\n", buf);
+    imap_get_msg(&sock);
 
     imap_sendmsg(&sock, "LIST \"\" \"*\"");
-    sock_read(&sock, buf, sizeof(buf));
-    printf("got: %s\n", buf);
+    imap_get_msg(&sock);
 
     imap_sendmsg(&sock, "SELECT INBOX");
-    sock_read(&sock, buf, sizeof(buf));
-    printf("got: %s\n", buf);
+    imap_get_msg(&sock);
 
     imap_sendmsg(&sock, "FETCH %d BODY[]", uid);
     for (;;) {
+	char buf[BUFSIZ];
 	sock_read(&sock, buf, sizeof(buf));
 
 	if (strncmp(buf, "iris4 OK", 5) == 0) {
@@ -80,8 +77,7 @@ static int imap_demo(int uid)
     }
 
     imap_sendmsg(&sock, "LOGOUT");
-    sock_read(&sock, buf, sizeof(buf));
-    printf("got: %s\n", buf);
+    imap_get_msg(&sock);
 
     return 0;
 }
