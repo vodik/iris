@@ -21,13 +21,13 @@ static size_t do_tag(char *buf, int tag)
     return ret;
 }
 
-int imap_get_msg(struct sock *sock)
+int imap_get_msg(struct imap *imap)
 {
     char tag[BUFSIZ];
     size_t taglen = do_tag(tag, TAG);
 
     char buf[BUFSIZ];
-    const ssize_t nbytes_r = sock_read(sock, buf, sizeof(buf));
+    const ssize_t nbytes_r = sock_read(&imap->sock, buf, sizeof(buf));
     if (nbytes_r < 0)
 	return -1;
 
@@ -38,7 +38,7 @@ int imap_get_msg(struct sock *sock)
     return 0;
 }
 
-int imap_sendmsg(struct sock *sock, const char *fmt, ...)
+int imap_sendmsg(struct imap *imap, const char *fmt, ...)
 {
     va_list ap;
     char stupid_buf[4089];
@@ -53,20 +53,20 @@ int imap_sendmsg(struct sock *sock, const char *fmt, ...)
     stupid_buf[len++] = '\n';
     stupid_buf[len] = '\0';
 
-    sock_write(sock, stupid_buf);
+    sock_write(&imap->sock, stupid_buf);
     printf("\033[32m%s\033[0m", stupid_buf);
     return len;
 }
 
-int imap_connect(struct sock *sock, const char *hostname,
+int imap_connect(struct imap *imap, const char *hostname,
 		 const char *service, SSL_CTX *ctx)
 {
-    sock_connect(sock, hostname, service);
+    sock_connect(&imap->sock, hostname, service);
     if (ctx)
-	sock_starttls(sock, ctx);
+	sock_starttls(&imap->sock, ctx);
 
     char buf[BUFSIZ];
-    sock_read(sock, buf, sizeof(buf));
+    sock_read(&imap->sock, buf, sizeof(buf));
     printf("got: %s\n", buf);
     return 0;
 }

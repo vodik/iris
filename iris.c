@@ -46,27 +46,26 @@ static int smtp_demo(void)
 
 static int imap_demo(int uid)
 {
-    struct sock sock;
-
     SSL_CTX *context = SSL_CTX_new(TLSv1_method());
     SSL_CTX_set_options(context, 0);
     SSL_CTX_set_verify(context, SSL_VERIFY_NONE, 0);
 
-    imap_connect(&sock, HOST, "imaps", context);
+    struct imap imap = {0};
+    imap_connect(&imap, HOST, "imaps", context);
 
-    imap_sendmsg(&sock, "LOGIN %s %s", USER, PASSWORD);
-    imap_get_msg(&sock);
+    imap_sendmsg(&imap, "LOGIN %s %s", USER, PASSWORD);
+    imap_get_msg(&imap);
 
-    imap_sendmsg(&sock, "LIST \"\" \"*\"");
-    imap_get_msg(&sock);
+    imap_sendmsg(&imap, "LIST \"\" \"*\"");
+    imap_get_msg(&imap);
 
-    imap_sendmsg(&sock, "SELECT INBOX");
-    imap_get_msg(&sock);
+    imap_sendmsg(&imap, "SELECT INBOX");
+    imap_get_msg(&imap);
 
-    imap_sendmsg(&sock, "FETCH %d BODY[]", uid);
+    imap_sendmsg(&imap, "FETCH %d BODY[]", uid);
     for (;;) {
 	char buf[BUFSIZ];
-	sock_read(&sock, buf, sizeof(buf));
+	sock_read(&imap.sock, buf, sizeof(buf));
 
 	if (strncmp(buf, "iris4 OK", 5) == 0) {
 	    printf("got: %s\n", buf);
@@ -76,8 +75,8 @@ static int imap_demo(int uid)
 	}
     }
 
-    imap_sendmsg(&sock, "LOGOUT");
-    imap_get_msg(&sock);
+    imap_sendmsg(&imap, "LOGOUT");
+    imap_get_msg(&imap);
 
     return 0;
 }
@@ -89,6 +88,6 @@ int main(int argc, const char *argv[])
     } else if (strcmp(argv[1], "submission") == 0) {
 	return smtp_demo();
     } else if (strcmp(argv[1], "imap") == 0) {
-	return imap_demo(5);
+	return imap_demo(6);
     }
 }
