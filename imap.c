@@ -12,7 +12,7 @@
 static size_t bump_tag(struct tag *tag)
 {
     /* FIXME: super stupid */
-    int ret = snprintf(tag->buf, sizeof(tag->buf), "iris%d ", ++tag->value);
+    int ret = snprintf(tag->buf, sizeof(tag->buf), "iris%d", ++tag->value);
     if (ret < 0)
 	err(1, "failed to write tag");
     return ret;
@@ -37,9 +37,11 @@ int imap_sendmsg(struct imap *imap, const char *fmt, ...)
     va_list ap;
     char stupid_buf[4089];
 
-    const size_t taglen = bump_tag(&imap->tag);
-    va_start(ap, fmt);
+    size_t taglen = bump_tag(&imap->tag);
     memcpy(stupid_buf, imap->tag.buf, taglen);
+    stupid_buf[taglen++] = ' ';
+
+    va_start(ap, fmt);
     size_t len = vsnprintf(stupid_buf + taglen, sizeof(stupid_buf) - taglen, fmt, ap);
     va_end(ap);
 

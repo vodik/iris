@@ -67,7 +67,7 @@ static int imap_demo(int uid)
     /* WARNING: hacks */
     char hacks[BUFSIZ];
     strcat(hacks, imap.tag.buf);
-    strcat(hacks, "OK");
+    strcat(hacks, " OK");
 
     for (;;) {
 	char buf[BUFSIZ];
@@ -94,6 +94,6 @@ int main(int argc, const char *argv[])
     } else if (strcmp(argv[1], "submission") == 0) {
 	return smtp_demo();
     } else if (strcmp(argv[1], "imap") == 0) {
-	return imap_demo(129);
+	return imap_demo(1);
     }
 }
