@@ -63,11 +63,17 @@ static int imap_demo(int uid)
     imap_get_msg(&imap);
 
     imap_sendmsg(&imap, "FETCH %d BODY[]", uid);
+
+    /* WARNING: hacks */
+    char hacks[BUFSIZ];
+    strcat(hacks, imap.tag.buf);
+    strcat(hacks, "OK");
+
     for (;;) {
 	char buf[BUFSIZ];
 	sock_read(&imap.sock, buf, sizeof(buf));
 
-	if (strncmp(buf, "iris4 OK", 5) == 0) {
+	if (strncmp(buf, hacks, strlen(hacks)) == 0) {
 	    printf("got: %s\n", buf);
 	    break;
 	} else {
@@ -88,6 +94,6 @@ int main(int argc, const char *argv[])
     } else if (strcmp(argv[1], "submission") == 0) {
 	return smtp_demo();
     } else if (strcmp(argv[1], "imap") == 0) {
-	return imap_demo(6);
+	return imap_demo(129);
     }
 }

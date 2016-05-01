@@ -9,13 +9,10 @@
 
 #include "socket.h"
 
-
-static int TAG = 0;
-
-static size_t do_tag(char *buf, int tag)
+static size_t bump_tag(struct tag *tag)
 {
     /* FIXME: super stupid */
-    int ret = sprintf(buf, "iris%d ", tag++);
+    int ret = snprintf(tag->buf, sizeof(tag->buf), "iris%d ", ++tag->value);
     if (ret < 0)
 	err(1, "failed to write tag");
     return ret;
@@ -23,9 +20,6 @@ static size_t do_tag(char *buf, int tag)
 
 int imap_get_msg(struct imap *imap)
 {
-    char tag[BUFSIZ];
-    size_t taglen = do_tag(tag, TAG);
-
     char buf[BUFSIZ];
     const ssize_t nbytes_r = sock_read(&imap->sock, buf, sizeof(buf));
     if (nbytes_r < 0)
@@ -42,9 +36,10 @@ int imap_sendmsg(struct imap *imap, const char *fmt, ...)
 {
     va_list ap;
     char stupid_buf[4089];
-    size_t taglen = do_tag(stupid_buf, ++TAG);
 
+    const size_t taglen = bump_tag(&imap->tag);
     va_start(ap, fmt);
+    memcpy(stupid_buf, imap->tag.buf, taglen);
     size_t len = vsnprintf(stupid_buf + taglen, sizeof(stupid_buf) - taglen, fmt, ap);
     va_end(ap);
 

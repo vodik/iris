@@ -4,8 +4,14 @@
 #include <openssl/ossl_typ.h>
 #include "socket.h"
 
+struct tag {
+    int value;
+    char buf[8];  // irisXXX\0
+};
+
 struct imap {
     struct sock sock;
+    struct tag tag;
 };
 
 int imap_connect(struct imap *imap, const char *hostname,
