@@ -18,18 +18,30 @@ static size_t bump_tag(struct tag *tag)
     return ret;
 }
 
-int imap_get_msg(struct imap *imap)
+int imap_getmsg(struct imap *imap, int unsolicited)
 {
     char buf[BUFSIZ];
     const ssize_t nbytes_r = sock_read(&imap->sock, buf, sizeof(buf));
     if (nbytes_r < 0)
 	return -1;
 
-    printf("\033[%dm%s\033[0m\n", 34, buf);
+    for (const char *it = buf; it != buf + nbytes_r;) {
+	const size_t eol = strcspn(it, "\n");
+	if (it[eol] != '\n')
+	    /* TODO: MALFORMED LINE */
+	    return -1;
 
-    /* if (strncmp(buf, tag, taglen) != 0) */
-    /* 	return -1; */
-    return 0;
+	if (*it == '*') {
+	    printf("\033[%dm%.*s\033[0m\n", 34, (int)eol, it);
+	} else if (strncmp(it, imap->tag.buf, strlen(imap->tag.buf)) == 0) {
+	    printf("\033[%d;1m%.*s\033[0m\n", 34, (int)eol, it);
+	    return 0;
+	}
+
+	it += eol + 1;
+    }
+
+    return unsolicited ? 0 : -1;
 }
 
 int imap_sendmsg(struct imap *imap, const char *fmt, ...)
@@ -62,8 +74,5 @@ int imap_connect(struct imap *imap, const char *hostname,
     if (ctx)
 	sock_starttls(&imap->sock, ctx);
 
-    char buf[BUFSIZ];
-    sock_read(&imap->sock, buf, sizeof(buf));
-    printf("got: %s\n", buf);
-    return 0;
+    return imap_getmsg(imap, 1);
 }

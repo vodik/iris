@@ -54,13 +54,13 @@ static int imap_demo(int uid)
     imap_connect(&imap, HOST, "imaps", context);
 
     imap_sendmsg(&imap, "LOGIN %s %s", USER, PASSWORD);
-    imap_get_msg(&imap);
+    imap_getmsg(&imap, 0);
 
     imap_sendmsg(&imap, "LIST \"\" \"*\"");
-    imap_get_msg(&imap);
+    imap_getmsg(&imap, 0);
 
     imap_sendmsg(&imap, "SELECT INBOX");
-    imap_get_msg(&imap);
+    imap_getmsg(&imap, 0);
 
     imap_sendmsg(&imap, "FETCH %d BODY[]", uid);
 
@@ -82,7 +82,7 @@ static int imap_demo(int uid)
     }
 
     imap_sendmsg(&imap, "LOGOUT");
-    imap_get_msg(&imap);
+    imap_getmsg(&imap, 0);
 
     return 0;
 }

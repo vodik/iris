@@ -17,4 +17,4 @@ struct imap {
 int imap_connect(struct imap *imap, const char *hostname,
 		 const char *service, SSL_CTX *ctx);
 int imap_sendmsg(struct imap *imap, const char *fmt, ...);
-int imap_get_msg(struct imap *imap);
+int imap_getmsg(struct imap *imap, int unsolicited);
