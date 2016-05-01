@@ -6,6 +6,7 @@
 
 struct tag {
     int value;
+    size_t len;
     char buf[8];  // irisXXX\0
 };
 

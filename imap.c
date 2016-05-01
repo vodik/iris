@@ -15,6 +15,7 @@ static size_t bump_tag(struct tag *tag)
     int ret = snprintf(tag->buf, sizeof(tag->buf), "iris%d", ++tag->value);
     if (ret < 0)
 	err(1, "failed to write tag");
+    tag->len = ret;
     return ret;
 }
 
@@ -33,7 +34,7 @@ int imap_getmsg(struct imap *imap, int unsolicited)
 
 	if (*it == '*') {
 	    printf("\033[%dm%.*s\033[0m\n", 34, (int)eol, it);
-	} else if (strncmp(it, imap->tag.buf, strlen(imap->tag.buf)) == 0) {
+	} else if (strncmp(it, imap->tag.buf, imap->tag.len) == 0) {
 	    printf("\033[%d;1m%.*s\033[0m\n", 34, (int)eol, it);
 	    return 0;
 	}

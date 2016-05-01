@@ -73,7 +73,7 @@ static int imap_demo(int uid)
 	char buf[BUFSIZ];
 	sock_read(&imap.sock, buf, sizeof(buf));
 
-	if (strncmp(buf, hacks, strlen(hacks)) == 0) {
+	if (strncmp(buf, hacks, imap.tag.len) == 0) {
 	    printf("got: %s\n", buf);
 	    break;
 	} else {
