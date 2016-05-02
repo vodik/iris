@@ -63,23 +63,7 @@ static int imap_demo(int uid)
     imap_getmsg(&imap, 0);
 
     imap_sendmsg(&imap, "FETCH %d BODY[]", uid);
-
-    /* WARNING: hacks */
-    char hacks[BUFSIZ];
-    strcat(hacks, imap.tag.buf);
-    strcat(hacks, " OK");
-
-    for (;;) {
-	char buf[BUFSIZ];
-	sock_read(&imap.sock, buf, sizeof(buf));
-
-	if (strncmp(buf, hacks, imap.tag.len) == 0) {
-	    printf("got: %s\n", buf);
-	    break;
-	} else {
-	    printf("%s", buf);
-	}
-    }
+    imap_getmsg(&imap, 0);
 
     imap_sendmsg(&imap, "LOGOUT");
     imap_getmsg(&imap, 0);

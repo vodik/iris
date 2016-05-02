@@ -22,22 +22,64 @@ static size_t bump_tag(struct tag *tag)
 int imap_getmsg(struct imap *imap, int unsolicited)
 {
     char buf[BUFSIZ];
-    const ssize_t nbytes_r = sock_read(&imap->sock, buf, sizeof(buf));
+    ssize_t nbytes_r = sock_read(&imap->sock, buf, sizeof(buf));
     if (nbytes_r < 0)
 	return -1;
 
     for (const char *it = buf; it != buf + nbytes_r;) {
-	const size_t eol = strcspn(it, "\n");
+	size_t eol = strcspn(it, "\n");
 	if (it[eol] != '\n')
 	    /* TODO: MALFORMED LINE */
 	    return -1;
 
+	const size_t lbracket = strcspn(it, "{");
+
 	if (*it == '*') {
 	    printf("\033[%dm%.*s\033[0m\n", 34, (int)eol, it);
-	} else if (strncmp(it, imap->tag.buf, imap->tag.len) == 0) {
+	}
+
+	if (it[lbracket] == '{') {
+	    /* FIXME: undefined behaviour warning */
+	    const size_t payload_size = atol(it + lbracket + 1);
+
+	    it += eol + 1;
+
+	    /* Deal with what's already present */
+	    size_t acc = nbytes_r - (it - buf);
+	    printf("\033[%dm%.*s\033[0m", 35, (int)acc, it);
+
+	    /* Read more stuff */
+	    for (;;) {
+		nbytes_r = sock_read(&imap->sock, buf, sizeof(buf));
+		acc += nbytes_r;
+
+		size_t msglen;
+		if (acc >= payload_size) {
+		    msglen = nbytes_r - (acc - payload_size);
+		} else {
+		    msglen = nbytes_r;
+		}
+
+		printf("\033[%dm%.*s\033[0m", 35, (int)msglen, buf);
+
+		/* If we're over the end, read again */
+		if (acc >= payload_size) {
+		    nbytes_r = sock_read(&imap->sock, buf, sizeof(buf));
+		    it = buf;
+		    eol = strcspn(it, "\n");
+		    if (it[eol] != '\n')
+			/* TODO: MALFORMED LINE */
+			return -1;
+		    break;
+		}
+	    }
+	}
+
+	if (imap->tag.len && strncmp(it, imap->tag.buf, imap->tag.len) == 0) {
 	    printf("\033[%d;1m%.*s\033[0m\n", 34, (int)eol, it);
 	    return 0;
 	}
+
 
 	it += eol + 1;
     }
