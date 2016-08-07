@@ -72,7 +72,7 @@ int sock_connect(struct sock *sock, const char *hostname, const char *service)
     int fd = sock_getaddrinfo(hostname, service);
     if (fd < 0) {
         perror("fd");
-	return -1;
+        return -1;
     }
 
     *sock = (struct sock){.fd = fd, .ssl = NULL, .use_ssl = 0};
@@ -83,9 +83,9 @@ ssize_t sock_read(struct sock *sock, char *buf, size_t bufsize)
 {
     ssize_t nbytes_r;
     if (sock->use_ssl)
-	nbytes_r = SSL_read(sock->ssl, buf, bufsize);
+        nbytes_r = SSL_read(sock->ssl, buf, bufsize);
     else
-	nbytes_r = read(sock->fd, buf, bufsize);
+        nbytes_r = read(sock->fd, buf, bufsize);
 
     if (nbytes_r >= 0)
 	buf[nbytes_r] = 0;
@@ -102,16 +102,16 @@ int sock_write(struct sock *sock, const char *msg)
 {
     size_t len = strlen(msg);
     if (sock->use_ssl)
-	return SSL_write(sock->ssl, msg, len);
+        return SSL_write(sock->ssl, msg, len);
     else
-	return write(sock->fd, msg, len);
+        return write(sock->fd, msg, len);
 }
 
 int sock_close(struct sock *sock)
 {
     close(sock->fd);
     if (sock->use_ssl)
-	SSL_free(sock->ssl);
+        SSL_free(sock->ssl);
     return 0;
 }
 
@@ -124,22 +124,22 @@ void sock_err(struct sock *sock, int ret)
 	case SSL_ERROR_SSL:
 	    err = ERR_get_error();
 	    if (err == 0) {
-		if (ret == 0)
-		    printf("SSL: got EOF\r\n");
-		else
-		    printf("SSL: %d: %s\r\n", errno, strerror(errno));
+            if (ret == 0)
+                printf("SSL: got EOF\r\n");
+            else
+                printf("SSL: %d: %s\r\n", errno, strerror(errno));
 	    } else
-		printf("SSL: %d: %s\r\n", err, ERR_error_string(err, 0));
+            printf("SSL: %d: %s\r\n", err, ERR_error_string(err, 0));
 	    break;
 	default:
 	    printf("SSL: %d: unhandled SSL error\r\n", err);
 	    break;
 	}
     } else {
-	if (ret < 0)
-	    perror("shit");
-	else
-	    printf("unexpeted EOF\r\n");
+        if (ret < 0)
+            perror("shit");
+        else
+            printf("unexpeted EOF\r\n");
     }
 
     exit(ret);

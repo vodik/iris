@@ -12,29 +12,29 @@ int smtp_get_msg(struct sock *sock, int pipeline)
     char buf[BUFSIZ];
     const ssize_t nbytes_r = sock_read(sock, buf, sizeof(buf));
     if (nbytes_r < 0)
-	return -1;
+        return -1;
 
     for (const char *it = buf; it != buf + nbytes_r;) {
-	const size_t eol = strcspn(it, "\n");
-	/* TODO: assert length of line >= 4 characters */
-	if (it[eol] != '\n')
-	    /* TODO: MALFORMED LINE */
-	    return -1;
+        const size_t eol = strcspn(it, "\n");
+        /* TODO: assert length of line >= 4 characters */
+        if (it[eol] != '\n')
+            /* TODO: MALFORMED LINE */
+            return -1;
 
-	const int status = (it[0] - '0') * 100 +
-	                   (it[1] - '0') * 10 +
-	                   (it[2] - '0');
+        const int status = (it[0] - '0') * 100 +
+                        (it[1] - '0') * 10 +
+                        (it[2] - '0');
 
-	const int color = status >= 400 ? 31 : 34;
-	printf("\033[%d;1m%d\033[0m\033[%dm%.*s\033[0m\n",
-	       color, status, color, (int)eol - 3, it + 3);
+        const int color = status >= 400 ? 31 : 34;
+        printf("\033[%d;1m%d\033[0m\033[%dm%.*s\033[0m\n",
+            color, status, color, (int)eol - 3, it + 3);
 
-	if (status >= 400)
-	    return -1;
-	else if (it[3] == ' ' && --pipeline == 0)
-	    return SMTP_OK;
+        if (status >= 400)
+            return -1;
+        else if (it[3] == ' ' && --pipeline == 0)
+            return SMTP_OK;
 
-	it += eol + 1;
+        it += eol + 1;
     }
 
     return -1;
@@ -52,13 +52,14 @@ int smtp_sendmsg(struct sock *sock, int pipeline, const char *fmt, ...)
 }
 
 int smtp_connect(struct sock *sock, const char *hostname,
-		 const char *service, SSL_CTX *ctx)
+                 const char *service, SSL_CTX *ctx)
 {
+
     sock_connect(sock, hostname, service);
     smtp_get_msg(sock, 1);
 
     if (ctx)
-	smtp_starttls(sock, ctx);
+        smtp_starttls(sock, ctx);
     return smtp_ehlo(sock, hostname);
 }
 
@@ -78,7 +79,7 @@ int smtp_starttls(struct sock *sock, SSL_CTX *ctx)
 }
 
 int smtp_auth_plain(struct sock *sock, const char *user, size_t user_size,
-		    const char *passwd, size_t passwd_size)
+                    const char *passwd, size_t passwd_size)
 {
     const size_t total_size = user_size + passwd_size + 2;
     unsigned char buf[total_size + 1], *p = buf;
@@ -91,7 +92,7 @@ int smtp_auth_plain(struct sock *sock, const char *user, size_t user_size,
 
     char *encoded = base64_encode(buf, total_size, NULL);
     if (!encoded)
-	exit(1);
+        exit(1);
 
     sock_sendmsg(sock, "AUTH PLAIN %s", encoded);
     free(encoded);

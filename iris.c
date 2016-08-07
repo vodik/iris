@@ -16,13 +16,13 @@ static int smtp_demo(void)
 
     struct sock sock;
     if (smtp_connect(&sock, HOST, "submission", context) != SMTP_OK) {
-	fprintf(stderr, "Failed to connect\n");
-	return 1;
+        fprintf(stderr, "Failed to connect\n");
+        return 1;
     }
 
     if (smtp_auth_plain(&sock, USER, strlen(USER), PASSWORD, strlen(PASSWORD)) != SMTP_OK) {
-	fprintf(stderr, "Failed to authenticate\n");
-	return 1;
+        fprintf(stderr, "Failed to authenticate\n");
+        return 1;
     }
 
     smtp_sendmsg(&sock, 3,
@@ -74,10 +74,10 @@ static int imap_demo(int uid)
 int main(int argc, const char *argv[])
 {
     if (argc != 2) {
-	return 1;
+        return 1;
     } else if (strcmp(argv[1], "submission") == 0) {
-	return smtp_demo();
+        return smtp_demo();
     } else if (strcmp(argv[1], "imap") == 0) {
-	return imap_demo(1);
+        return imap_demo(1);
     }
 }

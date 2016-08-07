@@ -15,7 +15,7 @@ static size_t bump_tag(struct tag *tag)
     /* FIXME: super stupid */
     int ret = snprintf(tag->buf, sizeof(tag->buf), "iris%d", ++tag->value);
     if (ret < 0)
-	err(1, "failed to write tag");
+        err(1, "failed to write tag");
     tag->len = ret;
     return ret;
 }
@@ -25,7 +25,7 @@ int imap_getmsg(struct imap *imap, int unsolicited)
     char buf[BUFSIZ];
     ssize_t nbytes_r = sock_read(&imap->sock, buf, sizeof(buf));
     if (nbytes_r < 0)
-	return -1;
+        return -1;
 
     for (const char *it = buf; it != buf + nbytes_r;) {
         size_t eol = strcspn(it, "\n");
