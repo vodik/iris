@@ -87,7 +87,7 @@ int smtp_auth_plain(struct sock *sock, const char *user, size_t user_size,
     p = mempcpy(p, user, user_size);
 
     *p++ = '\0';
-    p = mempcpy(p, passwd, passwd_size);
+    memcpy(p, passwd, passwd_size);
 
     char *encoded = base64_encode(buf, total_size, NULL);
     if (!encoded)
