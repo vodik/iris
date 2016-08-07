@@ -26,18 +26,18 @@ static int smtp_demo(void)
     }
 
     smtp_sendmsg(&sock, 3,
-		 "MAIL FROM: <%s>\r\n"
-		 "RCPT TO: <%s>\r\n"
-		 "DATA",
-		 MAIL_FROM, RCPT_TO);
+         "MAIL FROM: <%s>\r\n"
+         "RCPT TO: <%s>\r\n"
+         "DATA",
+         MAIL_FROM, RCPT_TO);
 
     smtp_sendmsg(&sock, 1,
-		 "From: <%s>\r\n"
-		 "To: <%s>\r\n"
-		 "Subject: Test message!\r\n"
-		 "This is a test message\r\n"
-		 ".",
-		 MAIL_FROM, RCPT_TO);
+         "From: <%s>\r\n"
+         "To: <%s>\r\n"
+         "Subject: Test message!\r\n"
+         "This is a test message\r\n"
+         ".",
+         MAIL_FROM, RCPT_TO);
 
     sock_close(&sock);
     SSL_CTX_free(context);
@@ -73,11 +73,12 @@ static int imap_demo(int uid)
 
 int main(int argc, const char *argv[])
 {
-    if (argc != 2) {
+    if (argc < 2) {
         return 1;
     } else if (strcmp(argv[1], "submission") == 0) {
         return smtp_demo();
     } else if (strcmp(argv[1], "imap") == 0) {
-        return imap_demo(1);
+        const int uid = atoi(argv[2]);  // FIXME: Undefined behaviour
+        return imap_demo(uid);
     }
 }
