@@ -109,11 +109,11 @@ int imap_sendmsg(struct imap *imap, const char *fmt, ...)
 }
 
 int imap_connect(struct imap *imap, const char *hostname,
-		 const char *service, SSL_CTX *ctx)
+                 const char *service, SSL_CTX *ctx)
 {
     sock_connect(&imap->sock, hostname, service);
     if (ctx)
-	sock_starttls(&imap->sock, ctx);
+        sock_starttls(&imap->sock, ctx);
 
     return imap_getmsg(imap, 1);
 }
